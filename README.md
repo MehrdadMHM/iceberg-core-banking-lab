@@ -19,7 +19,7 @@ The `warehouse/` data, JDBC jar, local dbt `profiles.yml`, and notebook outputs 
 
 ## Validation
 
-`dbt build` completed with 28 PASS, 0 WARN and 0 ERROR on 2026-09-27.
+`dbt build` completed with 28 PASS, 0 WARN and 0 ERROR on 2026-09-27. A manual Airflow run on the same date completed all six tasks successfully in about 25 minutes.
 
 ## Architecture and source history
 
@@ -82,6 +82,8 @@ The source and destination Links express the two Account roles in a transaction.
 | `compose.yaml` | Starts Spark/Jupyter and dbt using the external `airflow_default` network. |
 | `spark-defaults.conf` | Configures Spark's Iceberg catalog and warehouse. |
 | `dbt-image/Dockerfile` | Builds the dbt container. |
+| `dags/core_banking_iceberg_pipeline.py` | Manual Airflow orchestration for the Iceberg pipeline. |
+| `infra/airflow-compose.example.yml` | Sanitized reference for the separate Airflow/PostgreSQL stack. |
 | `dbt_project/dbt_project.yml` | Sets dbt project configuration. |
 | `dbt_project/profiles.example.yml` | Template for the local Spark Thrift connection. |
 | `models/bronze/sources.yml` | Declares the current Bronze dbt sources. |
@@ -100,3 +102,9 @@ Paths beginning with `models/` above are relative to `dbt_project/`. The Gold mo
 ## Reproduction notes
 
 This repository records a working local lab; it is not a one-command deployment. It expects a PostgreSQL service called `postgres` on `airflow_default` and `postgresql-42.7.13.jar` in the ignored `jars/` directory. The loaders read `PGUSER` and `PGPASSWORD` from their runtime environment. Copy `profiles.example.yml` to the ignored `profiles.yml` and fill in the local Spark Thrift host and user. The exploratory notebook, local Iceberg warehouse, JDBC jar, credentials, and generated dbt files are intentionally excluded from Git.
+
+## Airflow orchestration
+
+`dags/core_banking_iceberg_pipeline.py` is the manually triggered DAG tested in the local lab. It runs current Bronze → Silver → Gold → append Bronze history → Raw Vault → Business Vault. It uses the Airflow connection `iceberg_source_postgres` and executes commands in the existing `spark-iceberg` and `dbt-iceberg` containers via Docker CLI. The Spark container must contain the two loader scripts at `/home/iceberg/`, and Airflow must have Docker CLI and access to the same Docker daemon. The DAG disables task retries because re-running the history loader creates another source capture; manual triggering also creates a new capture. The dbt tasks use `dbt run`, while the separately reported validation used `dbt build`.
+
+`infra/airflow-compose.example.yml` documents the separate Airflow/PostgreSQL stack used by this lab. It is an example, not a replacement for an existing deployment or its persistent volume. Supply a local, ignored `.env` with credentials before using it, and configure Docker CLI access for Airflow separately. The current `compose.yaml` still expects the external `airflow_default` network.

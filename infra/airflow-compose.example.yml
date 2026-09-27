@@ -1,0 +1,34 @@
+# Reference for the separate Airflow/PostgreSQL stack used in the local lab.
+# Do not run over an existing stack without checking its project name and volume.
+# Docker CLI/socket access for the DAG must be configured separately.
+name: airflow
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in local environment}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in local environment}
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  airflow:
+    image: apache/airflow:3.0.3
+    depends_on:
+      - postgres
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_DB_URI:?set AIRFLOW_DB_URI in local environment}
+      AIRFLOW__API__SECRET_KEY: ${AIRFLOW_API_SECRET_KEY:?set AIRFLOW_API_SECRET_KEY in local environment}
+    volumes:
+      - ../dags:/opt/airflow/dags:ro
+    command: >
+      bash -c "airflow db migrate && airflow standalone"
+
+volumes:
+  postgres-db-volume:
