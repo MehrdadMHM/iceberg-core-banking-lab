@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: customers
+      - name: accounts
+      - name: transactions
+      - name: gl_accounts
+      - name: journal_entries
+      - name: journal_postings

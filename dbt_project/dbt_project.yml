@@ -1,0 +1,5 @@
+name: iceberg_lab
+version: '1.0'
+config-version: 2
+profile: iceberg_lab
+model-paths: ["models"]

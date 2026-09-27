@@ -1,0 +1,27 @@
+services:
+  spark-iceberg:
+    image: tabulario/spark-iceberg:latest
+    container_name: spark-iceberg
+    ports:
+      - "127.0.0.1:8888:8888"
+    volumes:
+      - ./warehouse:/home/iceberg/warehouse
+      - ./jars/postgresql-42.7.13.jar:/opt/spark/jars/postgresql-42.7.13.jar:ro
+      - ./notebooks:/home/iceberg/notebooks/work
+      - ./spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+    networks:
+      - airflow_default
+
+  dbt-iceberg:
+    build:
+      context: ./dbt-image
+    container_name: dbt-iceberg
+    command: ["sleep", "infinity"]
+    volumes:
+      - ./dbt_project:/workspace
+    networks:
+      - airflow_default
+
+networks:
+  airflow_default:
+    external: true

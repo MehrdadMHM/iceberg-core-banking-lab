@@ -1,0 +1,12 @@
+﻿iceberg_lab:
+  target: dev
+  outputs:
+    dev:
+      type: spark
+      method: thrift
+      host: SPARK_THRIFT_HOST
+      port: 10000
+      user: YOUR_USER
+      schema: silver
+      connect_retries: 3
+      connect_timeout: 30

@@ -1,0 +1,15 @@
+﻿warehouse/
+dbt_project/dbt_packages/
+dbt_project/logs/
+dbt_project/target/
+dbt_project/.user.yml
+dbt_project/profiles.yml
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.env
+.env.*
+jars/
+notebooks/Untitled.ipynb
+jars/
+notebooks/Untitled.ipynb
